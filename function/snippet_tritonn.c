@@ -58,7 +58,7 @@ func_snippet_tritonn(grn_ctx *ctx, int nargs, grn_obj **args,
 
     if(snip && GRN_TEXT_LEN(args[3])){
       grn_obj * normalizer;
-      normalizer = grn_ctx_get(ctx, GRN_TEXT_VALUE(args[3]), -1);
+      normalizer = grn_ctx_get(ctx, GRN_TEXT_VALUE(args[3]), GRN_TEXT_LEN(args[3]));
       grn_snip_set_normalizer(ctx, snip, normalizer); 
     }
 
