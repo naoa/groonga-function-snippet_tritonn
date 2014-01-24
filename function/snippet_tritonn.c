@@ -64,11 +64,10 @@ func_snippet_tritonn(grn_ctx *ctx, int nargs, grn_obj **args,
 
     if (snip) {
       grn_rc rc;
-      int i;
-      unsigned int n_results,max_tagged_length;
+      unsigned int i,n_results,max_tagged_length;
       grn_obj snippet_buffer;
 
-      for(i = 8; i < nargs; i += 3){
+      for(i = 8; i < (unsigned int)nargs; i += 3){
         rc = grn_snip_add_cond(ctx, snip,
                                GRN_TEXT_VALUE(args[i]), GRN_TEXT_LEN(args[i]),
                                GRN_TEXT_VALUE(args[i + 1]), GRN_TEXT_LEN(args[i + 1]),
@@ -79,7 +78,7 @@ func_snippet_tritonn(grn_ctx *ctx, int nargs, grn_obj **args,
                          &n_results, &max_tagged_length);
       GRN_TEXT_INIT(&snippet_buffer, 0);
       grn_bulk_space(ctx, &snippet_buffer, GRN_TEXT_LEN(args[6]) + max_tagged_length + GRN_TEXT_LEN(args[7]));
-      for (i = 0; i < (int) n_results; i++) {
+      for (i = 0; i < n_results; i++) {
         unsigned int snippet_length;
 
         GRN_BULK_REWIND(&snippet_buffer);
