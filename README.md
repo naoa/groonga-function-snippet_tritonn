@@ -18,7 +18,7 @@
 	]
 	
 	select Entries \
-	--output_columns 'title, snippet_tritton(title, 200, 2, "NormalizerAuto", 1, 1, "...", "...", \
+	--output_columns 'title, snippet_tritonn(title, 200, 2, "NormalizerAuto", 1, 1, "...", "...", \
 	"groonga", "<span class=\\"w1\\">", "</span>", "mysql", "<span class=\\"w2\\">", "</span>"), content' \
 	--command_version 2 \
 	--match_columns 'title' \
