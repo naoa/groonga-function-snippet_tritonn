@@ -1,0 +1,23 @@
+register function/snippet_tritonn
+register /usr/lib64/groonga/plugins/normalizers/mysql
+
+table_create Entries TABLE_NO_KEY
+column_create Entries title COLUMN_SCALAR ShortText
+column_create Entries content COLUMN_SCALAR ShortText
+
+table_create Tokens TABLE_PAT_KEY ShortText --default_tokenizer TokenBigram --normalizer NormalizerMySQLUnicodeCIExceptKanaCIKanaWithVoicedSoundMark
+
+column_create Tokens entries_title COLUMN_INDEX|WITH_POSITION Entries title
+column_create Tokens entries_content COLUMN_INDEX|WITH_POSITION Entries content
+
+load --table Entries
+[
+{"title": "groonga and MySQL", "content": "groonga + MySQL = mroonga."}
+]
+
+select Entries \
+  --output_columns 'title, snippet_tritonn(title, 200, 2, "NormalizerMySQLUnicodeCIExceptKanaCIKanaWithVoicedSoundMark", 1, 1, "...", "...", \
+  "mysql", "<span class=\\"w1\\">", "</span>"), content' \
+  --command_version 2 \
+  --match_columns 'title' \
+  --query mysql
