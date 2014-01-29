@@ -32,12 +32,7 @@ static grn_obj *
 func_snippet_tritonn(grn_ctx *ctx, int nargs, grn_obj **args,
                   grn_user_data *user_data)
 {
-  grn_obj *snippets;
-
-  snippets = grn_plugin_proc_alloc(ctx, user_data, GRN_DB_SHORT_TEXT, GRN_OBJ_VECTOR);
-  if (!snippets) {
-    return NULL;
-  }
+  grn_obj *snippets = NULL;
 
   if (nargs > 10) {
     grn_obj *text = args[0];
@@ -56,16 +51,16 @@ func_snippet_tritonn(grn_ctx *ctx, int nargs, grn_obj **args,
     }
     snip = grn_snip_open(ctx, flags, width, max_n_results, "", 0, "", 0, mapping);
 
-    if(snip && GRN_TEXT_LEN(args[3])){
-      grn_obj * normalizer;
-      normalizer = grn_ctx_get(ctx, GRN_TEXT_VALUE(args[3]), GRN_TEXT_LEN(args[3]));
-      grn_snip_set_normalizer(ctx, snip, normalizer); 
-    }
-
     if (snip) {
       grn_rc rc;
       unsigned int i,n_results,max_tagged_length;
       grn_obj snippet_buffer;
+
+      if(GRN_TEXT_LEN(args[3])){
+        grn_obj * normalizer;
+        normalizer = grn_ctx_get(ctx, GRN_TEXT_VALUE(args[3]), GRN_TEXT_LEN(args[3]));
+        grn_snip_set_normalizer(ctx, snip, normalizer); 
+      }
 
       for(i = 8; i < (unsigned int)nargs; i += 3){
         rc = grn_snip_add_cond(ctx, snip,
@@ -73,9 +68,28 @@ func_snippet_tritonn(grn_ctx *ctx, int nargs, grn_obj **args,
                                GRN_TEXT_VALUE(args[i + 1]), GRN_TEXT_LEN(args[i + 1]),
                                GRN_TEXT_VALUE(args[i + 2]), GRN_TEXT_LEN(args[i + 2]));
       }
+
       rc = grn_snip_exec(ctx, snip,
                          GRN_TEXT_VALUE(text), GRN_TEXT_LEN(text),
                          &n_results, &max_tagged_length);
+      if (rc != GRN_SUCCESS) {
+        GRN_OBJ_FIN(ctx, &snippet_buffer);
+        grn_snip_close(ctx, snip);
+        return NULL;
+      }
+
+      if (n_results == 0) {
+        snippets = grn_plugin_proc_alloc(ctx, user_data, GRN_DB_VOID, 0);
+      }
+      else{
+        snippets = grn_plugin_proc_alloc(ctx, user_data, GRN_DB_SHORT_TEXT, GRN_OBJ_VECTOR);
+        if (!snippets) {
+          GRN_OBJ_FIN(ctx, &snippet_buffer);
+          grn_snip_close(ctx, snip);
+          return NULL;
+        }
+      }
+
       GRN_TEXT_INIT(&snippet_buffer, 0);
       grn_bulk_space(ctx, &snippet_buffer, GRN_TEXT_LEN(args[6]) + max_tagged_length + GRN_TEXT_LEN(args[7]));
       for (i = 0; i < n_results; i++) {
