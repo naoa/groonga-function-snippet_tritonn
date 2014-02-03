@@ -36,7 +36,7 @@ func_snippet_tritonn(grn_ctx *ctx, int nargs, grn_obj **args,
 
   if (nargs > 10) {
     grn_obj *text = args[0];
-    grn_snip *snip = NULL;
+    grn_obj *snip = NULL;
     unsigned int width = GRN_UINT64_VALUE(args[1]);
     unsigned int max_n_results = GRN_UINT64_VALUE(args[2]);
     grn_snip_mapping *mapping = NULL;
@@ -106,7 +106,7 @@ func_snippet_tritonn(grn_ctx *ctx, int nargs, grn_obj **args,
                                0, GRN_DB_SHORT_TEXT);
       }
       GRN_OBJ_FIN(ctx, &snippet_buffer);
-      grn_snip_close(ctx, snip);
+      grn_obj_close(ctx, snip);
     }
   }
 
