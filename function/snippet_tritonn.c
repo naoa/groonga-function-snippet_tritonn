@@ -109,7 +109,9 @@ func_snippet_tritonn(grn_ctx *ctx, int nargs, grn_obj **args,
       grn_obj_close(ctx, snip);
     }
   }
-
+  if(snippets == NULL){
+    snippets = grn_plugin_proc_alloc(ctx, user_data, GRN_DB_VOID, 0);
+  }
   return snippets;
 }
 
