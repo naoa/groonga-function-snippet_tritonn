@@ -27,6 +27,58 @@
 # define GNUC_UNUSED
 #endif
 
+static grn_obj *
+snippet_exec(grn_ctx *ctx, grn_obj *snip, grn_obj *text,
+             grn_user_data *user_data, grn_obj **args)
+{
+  grn_rc rc;
+  unsigned int i, n_results, max_tagged_length;
+  grn_obj snippet_buffer;
+  grn_obj *snippets;
+
+  if (GRN_TEXT_LEN(text) == 0) {
+    return NULL;
+  }
+
+  rc = grn_snip_exec(ctx, snip,
+                     GRN_TEXT_VALUE(text), GRN_TEXT_LEN(text),
+                     &n_results, &max_tagged_length);
+  if (rc != GRN_SUCCESS) {
+    return NULL;
+  }
+
+  if (n_results == 0) {
+    return grn_plugin_proc_alloc(ctx, user_data, GRN_DB_VOID, 0);
+  }
+
+  snippets = grn_plugin_proc_alloc(ctx, user_data, GRN_DB_SHORT_TEXT, GRN_OBJ_VECTOR);
+  if (!snippets) {
+    return NULL;
+  }
+
+  GRN_TEXT_INIT(&snippet_buffer, 0);
+  grn_bulk_space(ctx, &snippet_buffer, GRN_TEXT_LEN(args[6]) + max_tagged_length + GRN_TEXT_LEN(args[7]));
+  for (i = 0; i < n_results; i++) {
+    unsigned int snippet_length;
+
+    GRN_BULK_REWIND(&snippet_buffer);
+    GRN_TEXT_PUT(ctx,&snippet_buffer,GRN_TEXT_VALUE(args[6]),GRN_TEXT_LEN(args[6]));
+    rc = grn_snip_get_result(ctx, snip, i,
+                             GRN_TEXT_VALUE(&snippet_buffer) + GRN_TEXT_LEN(args[6]),
+                             &snippet_length);
+    if (rc == GRN_SUCCESS) {
+      grn_vector_add_element(ctx, snippets,
+                             strcat(GRN_TEXT_VALUE(&snippet_buffer), GRN_TEXT_VALUE(args[7])),
+                             GRN_TEXT_LEN(args[6]) + snippet_length + GRN_TEXT_LEN(args[7]),
+                             0, GRN_DB_SHORT_TEXT);
+    }
+  }
+  GRN_OBJ_FIN(ctx, &snippet_buffer);
+
+  return snippets;
+}
+
+
 
 static grn_obj *
 func_snippet_tritonn(grn_ctx *ctx, int nargs, grn_obj **args,
@@ -53,8 +105,7 @@ func_snippet_tritonn(grn_ctx *ctx, int nargs, grn_obj **args,
 
     if (snip) {
       grn_rc rc;
-      unsigned int i,n_results,max_tagged_length;
-      grn_obj snippet_buffer;
+      unsigned int i;
 
       if(GRN_TEXT_LEN(args[3])){
         grn_obj * normalizer;
@@ -69,49 +120,14 @@ func_snippet_tritonn(grn_ctx *ctx, int nargs, grn_obj **args,
                                GRN_TEXT_VALUE(args[i + 2]), GRN_TEXT_LEN(args[i + 2]));
       }
 
-      rc = grn_snip_exec(ctx, snip,
-                         GRN_TEXT_VALUE(text), GRN_TEXT_LEN(text),
-                         &n_results, &max_tagged_length);
-      if (rc != GRN_SUCCESS) {
-        GRN_OBJ_FIN(ctx, &snippet_buffer);
-        grn_snip_close(ctx, snip);
-        return NULL;
-      }
-
-      if (n_results == 0) {
-        snippets = grn_plugin_proc_alloc(ctx, user_data, GRN_DB_VOID, 0);
-      }
-      else{
-        snippets = grn_plugin_proc_alloc(ctx, user_data, GRN_DB_SHORT_TEXT, GRN_OBJ_VECTOR);
-        if (!snippets) {
-          GRN_OBJ_FIN(ctx, &snippet_buffer);
-          grn_snip_close(ctx, snip);
-          return NULL;
-        }
-      }
-
-      GRN_TEXT_INIT(&snippet_buffer, 0);
-      grn_bulk_space(ctx, &snippet_buffer, GRN_TEXT_LEN(args[6]) + max_tagged_length + GRN_TEXT_LEN(args[7]));
-      for (i = 0; i < n_results; i++) {
-        unsigned int snippet_length;
-
-        GRN_BULK_REWIND(&snippet_buffer);
-        GRN_TEXT_PUT(ctx,&snippet_buffer,GRN_TEXT_VALUE(args[6]),GRN_TEXT_LEN(args[6]));
-        rc = grn_snip_get_result(ctx, snip, i,
-                                 GRN_TEXT_VALUE(&snippet_buffer) + GRN_TEXT_LEN(args[6]),
-                                 &snippet_length);
-        grn_vector_add_element(ctx, snippets,
-                               strcat(GRN_TEXT_VALUE(&snippet_buffer), GRN_TEXT_VALUE(args[7])),
-                               GRN_TEXT_LEN(args[6]) + snippet_length + GRN_TEXT_LEN(args[7]),
-                               0, GRN_DB_SHORT_TEXT);
-      }
-      GRN_OBJ_FIN(ctx, &snippet_buffer);
+      snippets = snippet_exec(ctx, snip, text, user_data, args);
       grn_obj_close(ctx, snip);
     }
   }
-  if(snippets == NULL){
+  if(!snippets){
     snippets = grn_plugin_proc_alloc(ctx, user_data, GRN_DB_VOID, 0);
   }
+
   return snippets;
 }
 
