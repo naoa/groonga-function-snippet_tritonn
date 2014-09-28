@@ -1,4 +1,4 @@
-register function/snippet_tritonn
+register functions/snippet_tritonn
 
 table_create Entries TABLE_NO_KEY
 column_create Entries title COLUMN_SCALAR ShortText

@@ -1,4 +1,4 @@
-register function/snippet_tritonn
+register functions/snippet_tritonn
 [[0,0.0,0.0],true]
 table_create Entries TABLE_NO_KEY
 [[0,0.0,0.0],true]
@@ -36,7 +36,7 @@ select Entries   --output_columns 'title, snippet_tritonn(title, 8, 1, "Normaliz
         ],
         [
           "snippet_tritonn",
-          ""
+          "Object"
         ],
         [
           "content",

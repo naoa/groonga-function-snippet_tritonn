@@ -1,7 +1,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS =					\
-	function				\
+	functions				\
 	test
 
 echo-groonga:

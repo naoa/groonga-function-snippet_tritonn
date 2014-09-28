@@ -2,7 +2,7 @@ AC_PREREQ(2.59)
 AC_INIT([groonga], 1.0.0, [visionary.incident@gmail.com])
 
 AC_CONFIG_MACRO_DIR([m4])
-AC_CONFIG_SRCDIR([function/snippet_tritonn.c])
+AC_CONFIG_SRCDIR([functions/snippet_tritonn.c])
 AM_CONFIG_HEADER([config.h])
 
 AM_INIT_AUTOMAKE()
@@ -36,7 +36,6 @@ PKG_CHECK_MODULES([GROONGA], [groonga >= ${GROONGA_REQUIRED_VERSION}])
 
 _PKG_CONFIG(GROONGA_PLUGINS_DIR, [variable=pluginsdir],    [groonga])
 _PKG_CONFIG(GROONGA,             [variable=groonga],       [groonga])
-_PKG_CONFIG(GROONGA_HTTPD,       [variable=groonga_httpd], [groonga])
 
 GROONGA_PLUGINS_DIR="${pkg_cv_GROONGA_PLUGINS_DIR}"
 GROONGA="${pkg_cv_GROONGA}"
@@ -44,14 +43,13 @@ GROONGA_HTTPD="${pkg_cv_GROONGA_HTTPD}"
 
 AC_SUBST(GROONGA_PLUGINS_DIR)
 AC_SUBST(GROONGA)
-AC_SUBST(GROONGA_HTTPD)
 
-function_pluginsdir="\${GROONGA_PLUGINS_DIR}/function"
-AC_SUBST(function_pluginsdir)
+functions_pluginsdir="\${GROONGA_PLUGINS_DIR}/functions"
+AC_SUBST(functions_pluginsdir)
 
 AC_CONFIG_FILES([
   Makefile
-  function/Makefile
+  functions/Makefile
   test/Makefile
 ])
 
@@ -67,4 +65,4 @@ echo
 echo "groonga"
 echo "  CFLAGS:                ${GROONGA_CFLAGS}"
 echo "  Libraries:             ${GROONGA_LIBS}"
-echo "  install directory:     ${function_pluginsdir}"
+echo "  install directory:     ${functions_pluginsdir}"
